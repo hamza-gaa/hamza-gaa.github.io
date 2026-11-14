@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>qa-session: autonomous QA for Claude Code</title>
+<meta name="description" content="Type /qa-session and Claude runs a full manual-QA session: syncs with your builds, works out change impact, designs and runs test cases, files and retests bugs, then logs where to pick up next. $1/month.">
+<!--
+  CHECKOUT LINK: replace every https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID
+  with your Lemon Squeezy checkout URL (Products → your product → Share). 4 occurrences.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E9EDF1;
+  --sheet:#FFFFFF;
+  --ink:#15233F;
+  --ink-soft:#4A5872;
+  --rule:#C9D1DB;
+  --grid:#DCE2E9;
+  --pass:#1E7A57;
+  --fail:#B42318;
+  --blocked:#A86A06;
+  --marker:#FFE34D;
+  --marker-ink:#15233F;
+  --display:"Bricolage Grotesque", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#101A2C;
+    --sheet:#16233A;
+    --ink:#E6ECF4;
+    --ink-soft:#A3B1C6;
+    --rule:#2B3B57;
+    --grid:#1A2840;
+    --pass:#4CC08E;
+    --fail:#FF7A6B;
+    --blocked:#E5A93A;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--display);font-size:1.0625rem;line-height:1.6;
+  font-optical-sizing:auto;-webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+code,kbd,pre{font-family:var(--mono);font-size:.9em}
+:focus-visible{outline:3px solid var(--marker);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+@media (max-width:600px){.wrap{padding:0 16px}}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0}
+.mark{font-family:var(--mono);font-weight:500;font-size:1.05rem;text-decoration:none;letter-spacing:-.01em}
+.mark span{color:var(--ink-soft)}
+.top nav{display:flex;align-items:center;gap:26px;font-size:.98rem}
+.top nav a{text-decoration:none;color:var(--ink-soft)}
+.top nav a:hover{color:var(--ink)}
+@media (max-width:760px){.top nav a.hide-sm{display:none}}
+
+/* buttons */
+.buy{
+  display:inline-block;background:var(--marker);color:var(--marker-ink);
+  font-weight:700;text-decoration:none;padding:.8em 1.25em;border-radius:10px;
+  box-shadow:0 0 0 2px var(--ink) inset;line-height:1.2;
+  transition:transform .12s ease;
+}
+.buy:hover{transform:translateY(-1px)}
+.buy:active{transform:translateY(1px)}
+.buy.small{padding:.55em .95em;font-size:.95rem}
+.plain-link{font-weight:500;text-underline-offset:4px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;align-items:center;padding:48px 0 88px}
+@media (max-width:920px){.hero{grid-template-columns:1fr;gap:40px;padding:24px 0 64px}}
+.hero h1{
+  font-size:clamp(2.6rem,6vw,4.4rem);line-height:1.02;letter-spacing:-.035em;
+  font-weight:800;margin:0 0 24px;
+}
+.hero h1 code{
+  font-family:var(--mono);font-weight:500;font-size:.78em;letter-spacing:-.04em;
+  background:var(--sheet);padding:.02em .22em;border-radius:8px;box-shadow:0 0 0 2px var(--ink) inset;
+  white-space:nowrap;
+}
+.lede{font-size:1.2rem;color:var(--ink-soft);max-width:34em;margin:0 0 32px}
+.cta-row{display:flex;flex-wrap:wrap;align-items:center;gap:22px}
+.fine{font-size:.92rem;color:var(--ink-soft);margin:18px 0 0}
+
+/* the run sheet */
+.sheet{
+  background:var(--sheet);border-radius:6px;position:relative;
+  box-shadow:0 1px 0 var(--rule),0 18px 40px -24px rgba(21,35,63,.45);
+  padding:22px 22px 18px;transform:rotate(.6deg);
+}
+@media (max-width:920px){.sheet{transform:none}}
+.sheet-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+.sheet-head h2{font-size:1.05rem;margin:0;font-weight:700;letter-spacing:-.01em}
+.sheet-head p{margin:0;font-family:var(--mono);font-size:.74rem;color:var(--ink-soft);white-space:nowrap}
+.rows{list-style:none;margin:0;padding:0}
+.rows li{
+  display:grid;grid-template-columns:5.6rem 1fr auto;gap:12px;align-items:center;
+  min-height:34px;padding:5px 0;font-size:.93rem;line-height:1.25;border-bottom:1px solid var(--grid);
+}
+.rows .id{font-family:var(--mono);font-size:.74rem;color:var(--ink-soft)}
+.stamp{
+  font-family:var(--mono);font-size:.72rem;font-weight:500;padding:.18em .55em;border-radius:4px;
+  border:1.5px solid currentColor;white-space:nowrap;transform:rotate(-3deg);
+}
+.stamp.pass{color:var(--pass)} .stamp.fail{color:var(--fail)} .stamp.blocked{color:var(--blocked)}
+.stamp.done{color:var(--ink-soft)}
+.sheet-foot{
+  border-top:2px solid var(--ink);margin-top:10px;padding-top:12px;
+  display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 18px;font-size:.88rem;
+}
+.sheet-foot strong{font-weight:700}
+.next{background:linear-gradient(transparent 55%,var(--marker) 55%,var(--marker) 92%,transparent 92%);color:var(--ink)}
+@media (prefers-color-scheme: dark){.next{color:#15233F;background:var(--marker);padding:0 .25em;border-radius:2px}}
+.sheet-note{font-size:.8rem;color:var(--ink-soft);margin:10px 2px 0;text-align:right}
+@media (max-width:480px){
+  .rows li{grid-template-columns:1fr auto}
+  .rows .id{display:none}
+  .sheet-head{flex-direction:column;gap:2px}
+}
+
+/* stamp-in sequence (one orchestrated moment) */
+@media (prefers-reduced-motion:no-preference){
+  .stamp{animation:stamp .32s cubic-bezier(.2,1.6,.4,1) both;animation-delay:calc(.35s + var(--i) * .22s)}
+  @keyframes stamp{from{opacity:0;transform:scale(1.9) rotate(-12deg)}to{opacity:1;transform:scale(1) rotate(-3deg)}}
+}
+
+/* sections */
+section{padding:80px 0;border-top:1px solid var(--rule)}
+.sec-head{max-width:40em;margin-bottom:44px}
+.sec-head h2{font-size:clamp(1.9rem,3.6vw,2.6rem);line-height:1.08;letter-spacing:-.03em;margin:0 0 14px;font-weight:800}
+.sec-head p{margin:0;color:var(--ink-soft);font-size:1.12rem}
+
+/* steps */
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:0;counter-reset:step}
+@media (max-width:860px){.steps{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.steps{grid-template-columns:1fr}}
+.steps li{counter-increment:step;padding:26px 26px 30px 0;border-top:2px solid var(--ink)}
+.steps li::before{
+  content:counter(step);display:block;font-weight:800;font-size:2.4rem;line-height:1;
+  letter-spacing:-.04em;margin-bottom:14px;color:var(--ink);
+}
+.steps h3{margin:0 0 6px;font-size:1.2rem;letter-spacing:-.015em}
+.steps p{margin:0;color:var(--ink-soft);font-size:.99rem;max-width:30em}
+
+/* leaves behind */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+@media (max-width:860px){.split{grid-template-columns:1fr;gap:32px}}
+.tree{
+  background:var(--sheet);border-radius:6px;padding:22px 24px;margin:0;overflow-x:auto;
+  font-size:.86rem;line-height:1.75;box-shadow:0 1px 0 var(--rule);
+}
+.tree .c{color:var(--ink-soft)}
+.facts{margin:0;padding:0;list-style:none}
+.facts li{padding:16px 0;border-bottom:1px solid var(--rule)}
+.facts li:first-child{padding-top:0}
+.facts strong{display:block;font-size:1.08rem;margin-bottom:2px}
+.facts span{color:var(--ink-soft)}
+
+/* rules */
+.rules{list-style:none;margin:0;padding:0;columns:2;column-gap:56px}
+@media (max-width:760px){.rules{columns:1}}
+.rules li{break-inside:avoid;padding:0 0 18px 34px;position:relative;max-width:34em}
+.rules li::before{
+  content:"";position:absolute;left:0;top:.28em;width:18px;height:18px;border-radius:4px;
+  border:2px solid var(--pass);
+}
+.rules li::after{
+  content:"";position:absolute;left:5px;top:.5em;width:7px;height:11px;border:solid var(--pass);
+  border-width:0 2.5px 2.5px 0;transform:rotate(45deg);
+}
+
+/* works with */
+.works{display:grid;grid-template-columns:repeat(4,1fr);gap:32px}
+@media (max-width:860px){.works{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.works{grid-template-columns:1fr}}
+.works h3{font-size:1rem;margin:0 0 8px;color:var(--ink-soft);font-weight:500}
+.works p{margin:0;font-size:1.08rem;font-weight:500}
+
+/* pricing */
+.pricing{display:grid;grid-template-columns:1.25fr 1fr;gap:28px;align-items:start}
+@media (max-width:860px){.pricing{grid-template-columns:1fr}}
+.plan{border-radius:8px;padding:34px}
+.plan.main{background:var(--sheet);box-shadow:0 0 0 2px var(--ink) inset}
+.plan.team{border:1.5px dashed var(--rule)}
+.plan h3{margin:0;font-size:1.25rem;letter-spacing:-.01em}
+.plan .who{margin:2px 0 20px;color:var(--ink-soft)}
+.price{display:flex;align-items:baseline;gap:8px;margin:0 0 24px}
+.price b{font-size:4.6rem;line-height:.9;letter-spacing:-.05em;font-weight:800}
+.price span{color:var(--ink-soft);font-size:1.05rem}
+.plan ul{margin:0 0 28px;padding:0 0 0 1.1em}
+.plan li{margin:0 0 6px}
+.plan .fine{margin-top:16px}
+
+/* install */
+.install pre{
+  background:var(--sheet);border-radius:6px;padding:20px 22px;margin:0 0 18px;overflow-x:auto;
+  font-size:.86rem;line-height:1.7;box-shadow:0 1px 0 var(--rule);
+}
+.install pre .c{color:var(--ink-soft)}
+
+/* faq */
+.faq{max-width:46em}
+.faq details{border-bottom:1px solid var(--rule)}
+.faq summary{
+  cursor:pointer;list-style:none;padding:18px 36px 18px 0;font-weight:700;font-size:1.1rem;position:relative;
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{
+  content:"";position:absolute;right:6px;top:50%;width:10px;height:10px;margin-top:-7px;
+  border:solid var(--ink);border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .18s ease;
+}
+.faq details[open] summary::after{transform:rotate(-135deg);margin-top:-2px}
+.faq details p{margin:0 0 20px;color:var(--ink-soft);max-width:40em}
+
+/* final cta + footer */
+.final{text-align:left;padding:96px 0}
+.final h2{font-size:clamp(2rem,4.4vw,3.2rem);letter-spacing:-.035em;line-height:1.05;margin:0 0 26px;max-width:16em;font-weight:800}
+footer{border-top:1px solid var(--rule);padding:28px 0 40px;font-size:.92rem;color:var(--ink-soft)}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="#" aria-label="qa-session home">/qa-session<span>_</span></a>
+    <nav aria-label="Main">
+      <a class="hide-sm" href="#how">How it works</a>
+      <a class="hide-sm" href="#pricing">Pricing</a>
+      <a class="hide-sm" href="#faq">FAQ</a>
+      <a class="buy small lemonsqueezy-button" href="https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID">Subscribe</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <h1>Type <code>/qa-session</code>. Get a full QA session back.</h1>
+        <p class="lede">A Claude Code skill that works like a manual tester. It checks what was deployed, works out which test cases the changes affect, runs them in a real browser, files and retests bugs, then writes down where the next session starts.</p>
+        <div class="cta-row">
+          <a class="buy lemonsqueezy-button" href="https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID">Subscribe for $1/month</a>
+          <a class="plain-link" href="#how">See what one session does</a>
+        </div>
+        <p class="fine">Cancel any time and keep the versions you already have.</p>
+      </div>
+
+      <figure class="sheet" style="margin:0" aria-label="Example session log">
+        <div class="sheet-head">
+          <h2>Checkout changes + retests</h2>
+          <p>web 3f2a1c9 / api 8b7e044</p>
+        </div>
+        <ul class="rows">
+          <li><span class="id">impact</span><span>2 new, 3 changed: 7 cases added, 1 retired</span><span class="stamp done" style="--i:0">done</span></li>
+          <li><span class="id">TC-CHK-014</span><span>Coupon applies at the minimum order total</span><span class="stamp pass" style="--i:1">pass</span></li>
+          <li><span class="id">TC-CHK-021</span><span>Customer can't open another customer's order by URL</span><span class="stamp pass" style="--i:2">pass</span></li>
+          <li><span class="id">TC-CHK-030</span><span>Empty cart shows a zero total</span><span class="stamp fail" style="--i:3">fail: SHOP-412</span></li>
+          <li><span class="id">TC-CHK-022</span><span>Two coupons on one order</span><span class="stamp blocked" style="--i:4">blocked: question</span></li>
+          <li><span class="id">SHOP-398</span><span>Retest: saved card not shown</span><span class="stamp pass" style="--i:5">closed</span></li>
+          <li><span class="id">SHOP-401</span><span>Retest: tax rounding on refunds</span><span class="stamp fail" style="--i:6">reopened</span></li>
+        </ul>
+        <div class="sheet-foot">
+          <span><strong>31</strong> pass, <strong>3</strong> fail, <strong>2</strong> blocked</span>
+          <span>Next session starts with: <span class="next">payments suite run</span></span>
+        </div>
+        <figcaption class="sheet-note">An example of what one session records.</figcaption>
+      </figure>
+    </div>
+
+    <section id="how">
+      <div class="sec-head">
+        <h2>One command, six steps, then it stops cleanly</h2>
+        <p>Each session works within a budget: 4 work items, 3 hours or 10 bugs filed by default. Then it tells you to <code>/clear</code> and run it again. Nothing it knows is kept in the chat.</p>
+      </div>
+      <ol class="steps">
+        <li><h3>Orient</h3><p>Reads the master QA plan, the last session's log, the backlog and the bug ledger.</p></li>
+        <li><h3>Sync</h3><p>Fetches your app repos read-only, pulls the test cases and specs, and finds bugs waiting for retest.</p></li>
+        <li><h3>Work out the change impact</h3><p>Reads the real diffs since the last recorded commit and decides which test cases to add, update or retire.</p></li>
+        <li><h3>Revise the plan</h3><p>Puts change work first, then retests, then regression, and tells you in a few lines what it will do.</p></li>
+        <li><h3>Do the work</h3><p>Designs missing cases, runs suites in a real browser, files bugs with screenshots and a duplicate check, and retests fixes.</p></li>
+        <li><h3>Close and log</h3><p>Reviews its own work, updates the plan and ledger, commits locally, and records where the next session starts.</p></li>
+      </ol>
+    </section>
+
+    <section>
+      <div class="split">
+        <div>
+          <div class="sec-head" style="margin-bottom:28px">
+            <h2>Everything it knows lives in plain files</h2>
+            <p>Your plan, results and bug history stay in your project as Markdown you can read, review and commit.</p>
+          </div>
+          <ul class="facts">
+            <li><strong>Changes are tracked by commit, not by date</strong><span>Each log entry records the exact commits it compared up to, so nothing slips through between sessions.</span></li>
+            <li><strong>Specs and builds are checked against each other</strong><span>Cases for a spec that hasn't shipped are marked "awaiting build". Code with no spec raises a product question, not a bug.</span></li>
+            <li><strong>Good test design comes first</strong><span>Negatives, permissions via URL and API, data isolation, boundaries, empty states and localisation, before anything runs.</span></li>
+          </ul>
+        </div>
+<pre class="tree" aria-label="Files a session produces"><code>qa/
+├── QA-PLAN.md        <span class="c"># phases, work items, budget</span>
+├── SESSION-LOG.md    <span class="c"># one entry per session</span>
+├── BACKLOG.md        <span class="c"># untested areas, open questions</span>
+├── ENVIRONMENT.md    <span class="c"># URLs, accounts (no passwords)</span>
+├── bugs/BUG-LEDGER.md <span class="c"># bug ↔ test case ↔ retest</span>
+└── runs/
+    ├── 2026-11-12-changes/impact.md
+    ├── 2026-11-12-checkout/results.md
+    ├── 2026-11-12-checkout/screenshots/
+    └── 2026-11-12-retest/results.md</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>Rules it follows in every session</h2>
+        <p>These apply on top of your project's own rules and CLAUDE.md.</p>
+      </div>
+      <ul class="rules">
+        <li>Tests only in your test environment, never in anything you list as off-limits.</li>
+        <li>Never edits, pulls, checks out, commits or pushes your app repos. It only fetches and reads them.</li>
+        <li>Commits test cases and state files locally. It pushes only if you turn on <code>auto_push</code>.</li>
+        <li>Prefixes everything it creates in the test environment, so test data is easy to find and clean up.</li>
+        <li>Keeps passwords in one git-ignored file and types them only into your test sign-in page.</li>
+        <li>Marks a case Pass or Fail only if it ran this session. Every Fail has a screenshot and a bug.</li>
+        <li>Starts only when you type <code>/qa-session</code>. Claude never starts a session by itself.</li>
+      </ul>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>Fits the tools you already use</h2>
+        <p>Everything project-specific lives in one config file, which it fills in for you on the first run.</p>
+      </div>
+      <div class="works">
+        <div><h3>Bug tracker</h3><p>Jira, GitHub Issues, Linear, or none (drafts stay in the run files)</p></div>
+        <div><h3>Browser</h3><p>Claude in Chrome or the Playwright MCP, one profile per user role</p></div>
+        <div><h3>Test cases</h3><p>xlsx, Markdown, CSV or a test-management tool, or none yet</p></div>
+        <div><h3>Your own setup</h3><p>Swap in your own skills, subagents, bug template and hard rules</p></div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="sec-head">
+        <h2>One price, every update</h2>
+        <p>Your subscription includes every new version and email support while it's active.</p>
+      </div>
+      <div class="pricing">
+        <div class="plan main">
+          <h3>Individual</h3>
+          <p class="who">For one person</p>
+          <p class="price"><b>$1</b><span>per month</span></p>
+          <ul>
+            <li>The full qa-session skill</li>
+            <li>Use it on all your own projects, including client work</li>
+            <li>Change it to fit how your team works</li>
+            <li>Every update while you're subscribed</li>
+            <li>Email support</li>
+          </ul>
+          <a class="buy lemonsqueezy-button" href="https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID">Subscribe for $1/month</a>
+          <p class="fine">Billed monthly. If you cancel, you keep the versions you already have.</p>
+        </div>
+        <div class="plan team">
+          <h3>Team</h3>
+          <p class="who">Up to 10 people in one organisation</p>
+          <p>Everything in Individual, licensed for your whole QA team.</p>
+          <p><a class="plain-link" href="mailto:hamzabeznes@gmail.com?subject=qa-session%20Team%20license">Email for team pricing</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="install">
+      <div class="split">
+        <div class="sec-head" style="margin-bottom:0">
+          <h2>Installed in a minute</h2>
+          <p>After you subscribe, the zip arrives in your purchase email. Copy one folder, start Claude Code, and type <code>/qa-session</code>. On the first run it creates its config and asks only for what it can't work out, usually your bug-tracker project and test URL.</p>
+        </div>
+<pre><code>unzip qa-session-v1.0.0.zip -d qa-session-v1.0.0
+
+<span class="c"># for one project</span>
+cp -r qa-session-v1.0.0/qa-session \
+      your-project/.claude/skills/qa-session
+
+<span class="c"># or for every project</span>
+cp -r qa-session-v1.0.0/qa-session \
+      ~/.claude/skills/qa-session</code></pre>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="sec-head"><h2>Questions</h2></div>
+      <div class="faq">
+        <details><summary>What do I need to use it?</summary><p>Claude Code and a test environment you're allowed to test, such as staging or UAT. Local clones of your app repos and a browser tool (Claude in Chrome or the Playwright MCP) are recommended. A bug tracker is optional.</p></details>
+        <details><summary>I don't have any test cases yet.</summary><p>That's fine. The first sessions design them from your specs and the app's behaviour, using the ID format you choose.</p></details>
+        <details><summary>Will it push or deploy anything?</summary><p>No. It commits locally and pushes only the test-case repo, and only if you turn on <code>auto_push</code>. It never touches your app repos.</p></details>
+        <details><summary>Can it test mobile apps?</summary><p>It drives a desktop browser. A case that really needs a phone is marked blocked, and a suspected defect gets a label so someone can check it on a device.</p></details>
+        <details><summary>Can I stop it mid-session?</summary><p>Yes. It saves progress after every work item, so a session can end at any point without losing work.</p></details>
+        <details><summary>What happens if I cancel?</summary><p>You keep using the versions you received while subscribed. You stop getting new versions and support. You can't share or publish the skill, before or after cancelling.</p></details>
+        <details><summary>How do updates work?</summary><p>Each new version arrives as a zip. You replace the skill folder. Your config and your <code>qa/</code> files live in your project, so nothing you've built up is lost.</p></details>
+      </div>
+    </section>
+
+    <section class="final">
+      <h2>Your next QA session is one command away.</h2>
+      <a class="buy lemonsqueezy-button" href="https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID">Subscribe for $1/month</a>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>qa-session © 2026 Hamza Gamal. Commercial license.</span>
+    <span>Support: <a href="mailto:hamzabeznes@gmail.com">hamzabeznes@gmail.com</a></span>
+  </div>
+</footer>
+
+<!-- Lemon Squeezy overlay checkout: opens links with class "lemonsqueezy-button" in a popup. -->
+<script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
+</body>
+</html>
