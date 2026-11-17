@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>qa-session: autonomous QA for Claude Code</title>
-<meta name="description" content="Type /qa-session and Claude runs a full manual-QA session: syncs with your builds, works out change impact, designs and runs test cases, files and retests bugs, then logs where to pick up next. $1/month.">
+<meta name="description" content="Type /qa-session and Claude runs a full manual-QA session: syncs with your builds, works out change impact, designs and runs test cases, files and retests bugs, then logs where to pick up next. $100 once, lifetime updates.">
 <!--
-  CHECKOUT LINK: replace every https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID
-  with your Lemon Squeezy checkout URL (Products → your product → Share). 4 occurrences.
+  CHECKOUT LINK: replace every https://YOUR-NAME.gumroad.com/l/qa-session
+  with your Gumroad product URL (Products → your product → Share). 4 occurrences.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -237,7 +237,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
       <a class="hide-sm" href="#how">How it works</a>
       <a class="hide-sm" href="#pricing">Pricing</a>
       <a class="hide-sm" href="#faq">FAQ</a>
-      <a class="buy small lemonsqueezy-button" href="https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID">Subscribe</a>
+      <a class="buy small" href="https://YOUR-NAME.gumroad.com/l/qa-session">Buy now</a>
     </nav>
   </header>
 
@@ -247,10 +247,10 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
         <h1>Type <code>/qa-session</code>. Get a full QA session back.</h1>
         <p class="lede">A Claude Code skill that works like a manual tester. It checks what was deployed, works out which test cases the changes affect, runs them in a real browser, files and retests bugs, then writes down where the next session starts.</p>
         <div class="cta-row">
-          <a class="buy lemonsqueezy-button" href="https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID">Subscribe for $1/month</a>
+          <a class="buy" href="https://YOUR-NAME.gumroad.com/l/qa-session">Buy once for $100</a>
           <a class="plain-link" href="#how">See what one session does</a>
         </div>
-        <p class="fine">Cancel any time and keep the versions you already have.</p>
+        <p class="fine">One payment. No subscription. Every future update included.</p>
       </div>
 
       <figure class="sheet" style="margin:0" aria-label="Example session log">
@@ -348,23 +348,23 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
 
     <section id="pricing">
       <div class="sec-head">
-        <h2>One price, every update</h2>
-        <p>Your subscription includes every new version and email support while it's active.</p>
+        <h2>Pay once, own it</h2>
+        <p>One payment gets you the skill, every future version and email support. Nothing renews.</p>
       </div>
       <div class="pricing">
         <div class="plan main">
           <h3>Individual</h3>
           <p class="who">For one person</p>
-          <p class="price"><b>$1</b><span>per month</span></p>
+          <p class="price"><b>$1</b><span>one-time</span></p>
           <ul>
             <li>The full qa-session skill</li>
             <li>Use it on all your own projects, including client work</li>
             <li>Change it to fit how your team works</li>
-            <li>Every update while you're subscribed</li>
+            <li>Lifetime updates, every future version included</li>
             <li>Email support</li>
           </ul>
-          <a class="buy lemonsqueezy-button" href="https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID">Subscribe for $1/month</a>
-          <p class="fine">Billed monthly. If you cancel, you keep the versions you already have.</p>
+          <a class="buy" href="https://YOUR-NAME.gumroad.com/l/qa-session">Buy once for $100</a>
+          <p class="fine">Paid once. No recurring charges.</p>
         </div>
         <div class="plan team">
           <h3>Team</h3>
@@ -379,7 +379,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
       <div class="split">
         <div class="sec-head" style="margin-bottom:0">
           <h2>Installed in a minute</h2>
-          <p>After you subscribe, the zip arrives in your purchase email. Copy one folder, start Claude Code, and type <code>/qa-session</code>. On the first run it creates its config and asks only for what it can't work out, usually your bug-tracker project and test URL.</p>
+          <p>After you buy, the zip arrives in your purchase email. Copy one folder, start Claude Code, and type <code>/qa-session</code>. On the first run it creates its config and asks only for what it can't work out, usually your bug-tracker project and test URL.</p>
         </div>
 <pre><code>unzip qa-session-v1.0.0.zip -d qa-session-v1.0.0
 
@@ -401,14 +401,14 @@ cp -r qa-session-v1.0.0/qa-session \
         <details><summary>Will it push or deploy anything?</summary><p>No. It commits locally and pushes only the test-case repo, and only if you turn on <code>auto_push</code>. It never touches your app repos.</p></details>
         <details><summary>Can it test mobile apps?</summary><p>It drives a desktop browser. A case that really needs a phone is marked blocked, and a suspected defect gets a label so someone can check it on a device.</p></details>
         <details><summary>Can I stop it mid-session?</summary><p>Yes. It saves progress after every work item, so a session can end at any point without losing work.</p></details>
-        <details><summary>What happens if I cancel?</summary><p>You keep using the versions you received while subscribed. You stop getting new versions and support. You can't share or publish the skill, before or after cancelling.</p></details>
-        <details><summary>How do updates work?</summary><p>Each new version arrives as a zip. You replace the skill folder. Your config and your <code>qa/</code> files live in your project, so nothing you've built up is lost.</p></details>
+        <details><summary>Is this a subscription?</summary><p>No. You pay once and keep the skill for good, with every future version included. The license is for you (or your team) only, so you can't share or publish the skill.</p></details>
+        <details><summary>How do updates work?</summary><p>Each new version is emailed to you and stays downloadable from your Gumroad library, as a zip. You replace the skill folder. Your config and your <code>qa/</code> files live in your project, so nothing you've built up is lost.</p></details>
       </div>
     </section>
 
     <section class="final">
       <h2>Your next QA session is one command away.</h2>
-      <a class="buy lemonsqueezy-button" href="https://YOUR-STORE.lemonsqueezy.com/buy/YOUR-VARIANT-ID">Subscribe for $1/month</a>
+      <a class="buy" href="https://YOUR-NAME.gumroad.com/l/qa-session">Buy once for $100</a>
     </section>
   </main>
 </div>
@@ -420,7 +420,7 @@ cp -r qa-session-v1.0.0/qa-session \
   </div>
 </footer>
 
-<!-- Lemon Squeezy overlay checkout: opens links with class "lemonsqueezy-button" in a popup. -->
-<script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
+<!-- Gumroad overlay checkout: opens links to your Gumroad product in a popup. -->
+<script src="https://gumroad.com/js/gumroad.js" defer></script>
 </body>
 </html>
